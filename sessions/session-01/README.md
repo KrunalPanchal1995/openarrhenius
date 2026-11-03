@@ -32,7 +32,7 @@ The Arrhenius law says k = A exp(-Ea/(R T)). T is the absolute temperature in ke
 | Ea | activation energy | kJ/mol (converted to J/mol inside the exponent) |
 | R | gas constant, 8.3145 | J/(mol K) |
 | T | absolute temperature | K |
-| x, y | 1000/T and ln k, the straight-line coordinates | 1/K times 1000, no unit |
+| x, y | 1000/T and ln k, the straight-line coordinates | x in 1000/K; y has no unit |
 | s | slope of ln k against 1000/T | no unit |
 
 **Assumptions**
@@ -40,7 +40,7 @@ The Arrhenius law says k = A exp(-Ea/(R T)). T is the absolute temperature in ke
 - One single reaction step controls the rate (a later session shows what happens if not).
 - Temperature is in kelvin: add 273.15 to degrees Celsius.
 - A and Ea do not depend on T over the range studied.
-- Measurement errors are random and multiplicative (a few percent of k).
+- Measurement errors are random and proportional to k (each reading is off by a few percent of its own value).
 - This is a simplified teaching model, not a validated tool for designing a reactor or a process.
 
 $$ k(T)=A\,\exp\!\left(-\frac{E_a}{R\,T}\right) $$
@@ -74,7 +74,7 @@ Run the lesson (`python start.py 1`), then open the live app: [Session 1: reacti
 
 **Answer.** k(800 K) = 1608 per s; going from 600 K to 700 K makes the reaction 73.4 times faster.
 
-**Experiment.** Measure the time a clear sugar-water and iodine-clock style reaction takes at four water temperatures with a stopwatch (take 1/time as a measure of k), plot ln(1/time) against 1000/T with T in kelvin and fit a line. Expect a roughly straight line; the slope gives an apparent Ea. Model versus reality: a stopwatch time is a crude measure of k, the temperature drifts while the mixture reacts, and real reactions often have several steps, so the apparent Ea may differ from the one-step value and the line may bend.
+**Experiment.** Measure with a stopwatch the time an iodine-clock reaction (a clear mixture that suddenly turns dark blue) takes at four water temperatures (take 1/time as a measure of k), plot ln(1/time) against 1000/T with T in kelvin and fit a line. Expect a roughly straight line; the slope gives an apparent Ea. Model versus reality: a stopwatch time is a crude measure of k, the temperature drifts while the mixture reacts, and real reactions often have several steps, so the apparent Ea may differ from the one-step value and the line may bend.
 
 ## F. Assessment and design challenge
 **Question type A: Conceptual.** Why does plotting ln k against 1000/T give a straight line, and what would you see if you plotted k against 1/T instead?
@@ -92,6 +92,7 @@ Take the logarithm of the Arrhenius law and compare it with y = m x + c.
 ln k = ln A - (Ea/R)(1/T) has the form y = c + m x with y = ln k and x = 1/T (we use 1000/T just to keep the numbers near 1). The slope is -Ea/R and the intercept is ln A. Plotting k itself against 1/T would give an exponential curve, not a line, because k contains the exponential.
 
 </details>
+
 **Question type B: Numerical.** For Ea = 100 kJ/mol, by what factor does k grow from 600 K to 700 K, and what is the slope of the Arrhenius line? Compare with the 73.4 times for Ea = 150 kJ/mol.
 
 <details>
@@ -107,6 +108,7 @@ Use k(700)/k(600) = exp[(Ea/R)(1/600 - 1/700)] and slope = -Ea/(1000 R) with R =
 The factor is 17.5 and the slope is -12.03 (units: none). The smaller activation energy gives a smaller factor and a less steep line. Sanity check: the factor is above 1 and lower than 73.4, as it should be for a lower hill.
 
 </details>
+
 **Question type C: Graph and simulation interpretation.** In the right-hand panel of the figure the fitted slope is -18.0. What activation energy does that mean, and what would a line twice as steep mean?
 
 <details>
@@ -122,6 +124,7 @@ Ea (kJ/mol) = - slope x 8.3145.
 Ea = 18.0 x 8.3145 = 149.7 kJ/mol (the fitted slope is -18.005). A line twice as steep means twice the activation energy, about 300 kJ/mol: the reaction would be much more sensitive to temperature.
 
 </details>
+
 **Question type D: Design and optimisation challenge.** Design: a furnace can reach at most 600 K and you need k of at least 1000 per s with A = 1e13 per s. What is the largest activation energy that works? And what temperature does a reaction with Ea = 150 kJ/mol need to reach the same k?
 
 <details>
