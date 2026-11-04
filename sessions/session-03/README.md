@@ -55,6 +55,17 @@ The figure has three panels. Left: nine data points from 600 to 1000 K, the fitt
 
 *Left: the 95 percent band flares outside the data. Middle: the one-sigma ellipse of (Ea, ln A), thin and tilted (r = 0.986 is for the worked example, the figure uses seed 4). Right: failure on curved data from two channels; the straight line misses the truth at 2000 K.*
 
+**A resampling alternative: the bootstrap.** `bootstrap_predict(T, k, T_target, method="residual" or "pairs")` builds the interval without a formula. It reuses the data you already have: the residual version adds randomly drawn residuals (corrected for leverage) back onto the fitted line, the pairs version draws whole (T, k) points with replacement, and each of 4000 resamples is refitted and evaluated at the target. It is pure numpy and takes a few milliseconds (the limit is 20 seconds). The table uses the mini-project data (7 points, 700 to 1100 K, 6 percent error, true k(2000 K) = 2.2e8 per s) and then asks how often each method's interval holds the true k when the whole experiment is repeated 1000 times (`interval_coverage` in `lesson.py`):
+
+| Method | Lower (1/s) | Upper (1/s) | Upper / lower | Coverage, 7 points | Coverage, 40 points |
+|---|---|---|---|---|---|
+| t formula (`band`) | 1.5e+08 | 2.67e+08 | 1.78 | 94.3% | 95.1% |
+| normal Monte Carlo (`mc_predict`) | 1.61e+08 | 2.5e+08 | 1.55 | 87.7% | 94.0% |
+| residual bootstrap | 1.63e+08 | 2.47e+08 | 1.52 | 88.1% | 94.2% |
+| pairs bootstrap | 1.72e+08 | 2.47e+08 | 1.43 | 88.4% | 93.8% |
+
+All four hold the true k in the single example, but the repeated experiments tell them apart. The t formula is honest at 94 to 95 percent. Monte Carlo and both bootstraps are about 6 points short at 7 points, because they treat the scatter of 7 numbers as if it were the true scatter and the t factor (2.57 against 1.96) is what pays for that mistake; with 40 points the four methods agree. The lesson: a bootstrap is a good choice when no formula exists, but with fewer than about 20 points it needs care, and a narrower interval is not a better one unless its coverage is checked.
+
 ## D. Interactive simulation
 Run the lesson (`python start.py 3`), then open the live app: [Session 3: how sure is k at 2000 K?](https://krunalpanchal1995.github.io/openarrhenius/session-03/) (or `app.html` in this folder). Change the noise, the number of points and the cold end of the data window. In the band view watch the flare at 2000 K, in the ellipse view see the sliver shrink or stretch, and in the ruler view compare the length of the data window with the distance to the target.
 

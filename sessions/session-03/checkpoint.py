@@ -84,6 +84,40 @@ def run_checks(L):
                    abs(L.expected_factor(0.05, 6, 800.0) - 1.52) < 0.005 and abs(L.expected_factor(0.05, 12, 500.0) - 1.113) < 0.002))
     checks.append(("app challenge: 12 points from 500 K meets the 1.15 limit, the default (6 points from 800 K) does not",
                    L.expected_factor(0.05, 12, 500.0) <= 1.15 < L.expected_factor(0.05, 6, 800.0)))
+    # ---- bootstrap ------------------------------------------------------------------------------
+    import time
+    Tm = np.linspace(700.0, 1100.0, 7)
+    km = L.synthetic(Tm, 0.06, 21, 3e11, 120.0)
+    fm = L.fit_with_cov(Tm, km)
+    bm, blo, bhi = (v[0] for v in L.band(fm, 2000.0))
+    t0 = time.time()
+    r_med, r_lo, r_hi = L.bootstrap_predict(Tm, km, 2000.0)
+    p_med, p_lo, p_hi = L.bootstrap_predict(Tm, km, 2000.0, method="pairs")
+    dt = time.time() - t0
+    true_m = float(L.arrhenius_k(2000.0, 3e11, 120.0))
+    checks.append((f"bootstrap on the mini-project data: formula factor {bhi / blo:.2f}, residual bootstrap {r_hi / r_lo:.2f}, pairs bootstrap {p_hi / p_lo:.2f}; both bootstraps hold the true k, in {dt:.2f} s (under 20 s)",
+                   abs(bhi / blo - 1.78) < 0.01 and r_lo <= true_m <= r_hi and p_lo <= true_m <= p_hi and 1.3 < r_hi / r_lo < bhi / blo and 1.3 < p_hi / p_lo < bhi / blo and dt < 20.0))
+    checks.append(("bootstrap median agrees with the fitted line's prediction at 2000 K to 1%",
+                   abs(r_med - bm) / bm < 0.01))
+    ex = L.bootstrap_predict(Tm, L.arrhenius_k(Tm, 3e11, 120.0), 2000.0)
+    checks.append(("noise-free data: the bootstrap interval collapses onto the true k", abs(ex[1] / true_m - 1) < 1e-9 and abs(ex[2] / true_m - 1) < 1e-9))
+    c_band, _ = L.interval_coverage(Tm, 2000.0, "band", rel_noise=0.06)
+    c_res, f_res = L.interval_coverage(Tm, 2000.0, "bootstrap-residual", rel_noise=0.06)
+    checks.append((f"7 points, 1000 repeated experiments: t band covers {100 * c_band:.1f}% (about 95), residual bootstrap only {100 * c_res:.1f}% (too narrow)",
+                   0.93 < c_band < 0.96 and 0.85 < c_res < 0.92))
+    T40 = np.linspace(600.0, 1000.0, 40)
+    c40, _ = L.interval_coverage(T40, 2000.0, "bootstrap-residual", rel_noise=0.06)
+    checks.append((f"40 points: the residual bootstrap catches up ({100 * c40:.1f}% coverage)", 0.92 < c40 < 0.96))
+    bad_method = bad_n = False
+    try:
+        L.bootstrap_predict(Tm, km, 2000.0, method="nope")
+    except ValueError:
+        bad_method = True
+    try:
+        L.bootstrap_predict(Tm[:2], km[:2], 2000.0)
+    except ValueError:
+        bad_n = True
+    checks.append(("an unknown method name and fewer than 3 points are refused", bad_method and bad_n))
     return checks
 
 

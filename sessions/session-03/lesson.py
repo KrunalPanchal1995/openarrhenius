@@ -133,6 +133,58 @@ def mc_predict(fit, T_target, draws=40000, seed=7):
 
 
 # %% [markdown]
+# ## Step 3b: the bootstrap, an interval without a formula
+# Monte Carlo above still assumes the fitted parameters are normal. The *bootstrap* assumes
+# nothing about the shape: it re-runs the experiment on the computer by reusing the data we
+# have, refits every time, and reads the percentiles of the prediction.
+# * **residual bootstrap**: keep the fitted line, take the n residuals (corrected for leverage,
+#   because a least-squares line hugs its own points), draw n of them with replacement, add
+#   them to the line, refit.
+# * **pairs bootstrap**: draw n of the (T, k) points with replacement and refit (a draw with
+#   all the same temperature cannot give a slope and is dropped).
+#
+# Both are pure numpy and vectorised: thousands of refits take a few milliseconds. The catch,
+# which Step 4 will show, is that with only 7 to 9 points the percentile bootstrap is too
+# narrow: the data's own scatter is a noisy estimate of the true scatter and the t factor is
+# what pays for that.
+
+# %%
+def bootstrap_predict(T, k, T_target, draws=4000, seed=3, method="residual"):
+    """(median k, 2.5 percent, 97.5 percent) at T_target by bootstrap. method = "residual" or "pairs"."""
+    rng = np.random.default_rng(seed)
+    T = np.asarray(T, dtype=float)
+    x, y = 1000.0 / T, np.log(np.asarray(k, dtype=float))
+    n = x.size
+    if n < 3:
+        raise ValueError("need at least 3 points")
+    xt = 1000.0 / T_target
+    if method == "residual":
+        X = np.column_stack([np.ones(n), x])
+        XtXiXt = np.linalg.solve(X.T @ X, X.T)                 # (2, n): maps y to (b0, b1)
+        b = XtXiXt @ y
+        res = y - X @ b
+        lev = np.einsum("ij,ji->i", X, XtXiXt)                  # leverage of each point
+        e = res / np.sqrt(1.0 - lev)
+        e -= e.mean()
+        ys = X @ b + e[rng.integers(0, n, (draws, n))]
+        bs = ys @ XtXiXt.T
+        pred = bs[:, 0] + bs[:, 1] * xt
+    elif method == "pairs":
+        idx = rng.integers(0, n, (draws, n))
+        xs, yb = x[idx], y[idx]
+        xm, ym = xs.mean(axis=1, keepdims=True), yb.mean(axis=1, keepdims=True)
+        sxx = ((xs - xm) ** 2).sum(axis=1)
+        ok = sxx > 1e-12
+        b1 = ((xs - xm) * (yb - ym)).sum(axis=1)[ok] / sxx[ok]
+        b0 = ym[ok, 0] - b1 * xm[ok, 0]
+        pred = b0 + b1 * xt
+    else:
+        raise ValueError("method must be 'residual' or 'pairs'")
+    lo, med, hi = np.percentile(np.exp(pred), [2.5, 50, 97.5])
+    return float(med), float(lo), float(hi)
+
+
+# %% [markdown]
 # ## Step 4: validate against known truth
 # Because we made the data from known A and Ea, we can repeat the whole experiment many times and
 # count how often the 95 percent interval at the target temperature contains the true k.
@@ -152,6 +204,26 @@ def coverage(T, T_target, rel_noise=0.05, repeats=2000, seed=11, A=A_TRUE, Ea_kJ
         hit += int(lo[0] <= true <= hi[0])
         eas.append(lnA_Ea(f)["Ea"])
     return hit / repeats, float(np.mean(eas))
+
+
+def interval_coverage(T, T_target, method, rel_noise=0.05, repeats=1000, seed=11, A=A_TRUE, Ea_kJ=EA_TRUE):
+    """Like `coverage`, but for any interval method: "band" (t formula), "mc" or "bootstrap-residual"/"bootstrap-pairs".
+    Returns (fraction of repeats whose interval holds the true k, mean upper/lower factor)."""
+    rng = np.random.default_rng(seed)
+    T = np.asarray(T, dtype=float)
+    true = float(arrhenius_k(T_target, A, Ea_kJ))
+    hit, fac = 0, []
+    for r in range(repeats):
+        k = arrhenius_k(T, A, Ea_kJ) * np.exp(rel_noise * rng.standard_normal(T.size))
+        if method == "band":
+            _, lo, hi = (v[0] for v in band(fit_with_cov(T, k), T_target))
+        elif method == "mc":
+            _, lo, hi = mc_predict(fit_with_cov(T, k), T_target, draws=4000, seed=r)
+        else:
+            _, lo, hi = bootstrap_predict(T, k, T_target, draws=2000, seed=r, method=method.split("-")[1])
+        hit += int(lo <= true <= hi)
+        fac.append(hi / lo)
+    return hit / repeats, float(np.mean(fac))
 
 
 # %% [markdown]
