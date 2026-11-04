@@ -2,18 +2,18 @@
 
 [![Checks](https://github.com/KrunalPanchal1995/openarrhenius/actions/workflows/ci.yml/badge.svg)](https://github.com/KrunalPanchal1995/openarrhenius/actions/workflows/ci.yml) ![License: MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square) ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square) [![Open in Colab](https://img.shields.io/badge/Colab-session%201-F9AB00?style=flat-square&logo=googlecolab&logoColor=white)](https://colab.research.google.com/github/KrunalPanchal1995/openarrhenius/blob/main/sessions/session-01/lesson.ipynb) [![Live apps](https://img.shields.io/badge/live-apps-1f6feb?style=flat-square)](https://krunalpanchal1995.github.io/openarrhenius/)
 
-**Fit a rate constant against temperature and say how sure you are, in three sessions.**
+**Fit a rate constant against temperature and say how sure you are, in four sessions.**
 
 openarrhenius teaches how to fit the Arrhenius law to measured rate constants and how to report the result with an honest uncertainty, using only Python and a browser.
 
 - **Start from zero.** Session 1 needs only school algebra and logarithms; every symbol is explained.
 - **See the uncertainty.** Each session ships a slider app with labelled graphs, including a band that flares outside the data.
-- **Know you got it right.** Every session ends with a checkpoint that prints PASS or FAIL, and Session 3 checks that the 95 percent interval really contains the truth about 95 times in 100.
-- **Build the missing half.** The repo stops at Session 3 on purpose; the roadmap shows the path to the Target.
+- **Know you got it right.** Every session ends with a checkpoint that prints PASS or FAIL; Session 3 checks that the 95 percent interval really contains the truth about 95 times in 100, and Session 4 checks the same for a curved plot.
+- **Build the missing half.** The repo stops at Session 4 on purpose; the roadmap shows the path to the Target.
 
 [Target](#the-target) · [Who is this for](#who-is-this-for) · [Quick start](#quick-start) · [Sessions](#sessions) · [Roadmap](#roadmap) · [Contribute](#contribute) · [Explainer PDF](docs/explainer.pdf)
 
-> **This repo is incomplete on purpose.** Sessions 1 to 3 are here and fully working. The finished Target below is a preview of what the community can build next. We show you the path, not the code. Sessions 4 and up are yours.
+> **This repo is incomplete on purpose.** Sessions 1 to 4 are here and fully working. The finished Target below is a preview of what the community can build next. We show you the path, not the code. Sessions 5 and up are yours.
 
 ## The Target
 
@@ -54,7 +54,7 @@ cd openarrhenius
 python start.py 1
 ```
 
-`start.py` creates a private environment, installs what is needed and runs Session 1 with its checkpoint. Next: `python start.py 2`, `python start.py 3`, or `python start.py test` to check everything. Only a checkpoint: `python start.py check 1`.
+`start.py` creates a private environment, installs what is needed and runs Session 1 with its checkpoint. Next: `python start.py 2`, `python start.py 3`, `python start.py 4`, or `python start.py test` to check everything. Only a checkpoint: `python start.py check 1`.
 
 Four lines turn the idea of Session 1 into a result (they work as they are): Save it as `try.py` and run it with `python start.py run try.py` (this uses the private environment, where NumPy is installed):
 
@@ -75,8 +75,9 @@ Every session also opens in your browser with sliders (no install): [live apps](
 | 1 | [Reaction speed rises steeply with temperature](sessions/session-01/README.md) | Level 1: conceptual interactive model | 60 min | [open](https://krunalpanchal1995.github.io/openarrhenius/session-01/) |
 | 2 | [Fit with units, and design the experiment](sessions/session-02/README.md) | Level 2: mathematical engineering model | 75 min | [open](https://krunalpanchal1995.github.io/openarrhenius/session-02/) |
 | 3 | [How sure are we about k where we did not measure?](sessions/session-03/README.md) | Level 3: simulation and validation | 90 min | [open](https://krunalpanchal1995.github.io/openarrhenius/session-03/) |
+| 4 | [Fit a curved Arrhenius plot](sessions/session-04/README.md) | Level 3: simulation and validation | 90 min | [open](https://krunalpanchal1995.github.io/openarrhenius/session-04/) |
 
-Each session follows the same six steps: A real-world problem, B concept and theory, C visual explanation, D interactive simulation, E worked example and experiment, F assessment and design challenge. Each ends with `checkpoint.py`, which prints `PASS` or `FAIL` against reference numbers. Session 3 also contains the real-world mini-project: **Fit Ea and A and predict k at 2000 K with a band**.
+Each session follows the same six steps: A real-world problem, B concept and theory, C visual explanation, D interactive simulation, E worked example and experiment, F assessment and design challenge. Each ends with `checkpoint.py`, which prints `PASS` or `FAIL` against reference numbers. Session 3 also contains the real-world mini-project: **Fit Ea and A and predict k at 2000 K with a band**, and Session 4 the mini-project **Predict k at 2000 K from a curved plot**.
 
 ## Architecture
 
@@ -85,14 +86,15 @@ flowchart LR
   S1[Session 1<br/>Reaction speed rises steeply with temperature]
   S2[Session 2<br/>Fit with units, and design the experiment]
   S3[Session 3<br/>How sure are we about k where we did not measure?]
-  R[Roadmap S4+<br/>YOU build this]
+  S4[Session 4<br/>Fit a curved Arrhenius plot]
+  R[Roadmap S5+<br/>YOU build this]
   T((Target))
-  S1 --> S2 --> S3 --> R --> T
+  S1 --> S2 --> S3 --> S4 --> R --> T
 ```
 
 | Folder or file | What is inside |
 |---|---|
-| `sessions/` | three sessions: README (A-F), `lesson.py`, notebook, live app, exercises, activity sheet, checkpoint |
+| `sessions/` | four sessions: README (A-F), `lesson.py`, notebook, live app, exercises, activity sheet, checkpoint |
 | `promo/` | the Target: media, live links, and the roadmap (path only) |
 | `docs/` | `explainer.tex` and the built `explainer.pdf` |
 | `tests/` | runs every lesson and checkpoint headless |
@@ -104,7 +106,6 @@ flowchart LR
 
 | Milestone | What you will build | Difficulty |
 |---|---|---|
-| Session 4: Fit a curved Arrhenius plot | A fitting function for k = k1(T) + k2(T) with its own uncertainty band. | advanced |
 | Session 5: Design the experiment for the prediction | A small optimiser over seven temperatures between 700 and 1100 K, requiring at least three distinct temperatures so linearity can be checked. | intermediate |
 | Session 6: Bootstrap intervals | A residual bootstrap of the 2000 K prediction. | intermediate |
 | Session 7: Three-parameter fits and their correlations | A fit_modified that also returns the 3 by 3 covariance and a correlation table. | intermediate |

@@ -2,16 +2,6 @@
 
 This is the path, not the code. Each milestone says what you learn, what you build, and how you know it works. Pick one and open a pull request. See [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-## Session 4: Fit a curved Arrhenius plot
-
-**You will learn:** Nonlinear least squares for a sum of two Arrhenius channels, and why the parameters are hard to identify.
-
-**You will build:** A fitting function for k = k1(T) + k2(T) with its own uncertainty band.
-
-**Checkpoint (not met by the shipped code):** From 3 percent noisy data between 500 and 1600 K, predict k at 2000 K within a factor 1.5 of the true 5.98e8 per s (the shipped straight-line fit is 9.2 times too low).
-
-**Difficulty:** advanced
-
 ## Session 5: Design the experiment for the prediction
 
 **You will learn:** Optimal design: choosing temperatures to minimise the error at the target rather than the error of Ea.

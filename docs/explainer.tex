@@ -10,7 +10,7 @@
 \setlength{\parindent}{0pt}
 \begin{document}
 
-\begin{center}{\LARGE\bfseries openarrhenius}\\[0.4em]{\large Fit a rate constant against temperature and say how sure you are, in three sessions.}\\[0.2em]\small PAN IIT OSS explainer \textbullet{} secondary school to diploma / undergraduate (levels 3-5)\end{center}
+\begin{center}{\LARGE\bfseries openarrhenius}\\[0.4em]{\large Fit a rate constant against temperature and say how sure you are, in four sessions.}\\[0.2em]\small PAN IIT OSS explainer \textbullet{} secondary school to diploma / undergraduate (levels 3-5)\end{center}
 
 \section*{Why this exists}
 Chemical rates grow exponentially with temperature, and a handful of measurements is all we ever have. This explainer shows how to turn them into a law with the right axes and least squares, and how to say how sure we are, using only logarithms and a straight line.
@@ -18,11 +18,12 @@ Chemical rates grow exponentially with temperature, and a handful of measurement
 \section*{The end goal}
 Fit rate constants with uncertainty using the Arrhenius law. The end goal is fitting rate constants with uncertainty using the Arrhenius law, as is done in combustion and chemical kinetics: a fitted Ea and A, their correlation, and a prediction band that is honest about extrapolation.
 
-\section*{How the three sessions build up}
+\section*{How the four sessions build up}
 \begin{enumerate}[nosep]
 \item \textbf{Session 1: Reaction speed rises steeply with temperature} (Level 1, conceptual interactive model, 60 min).
 \item \textbf{Session 2: Fit with units, and design the experiment} (Level 2, mathematical engineering model, 75 min).
 \item \textbf{Session 3: How sure are we about k where we did not measure?} (Level 3, simulation and validation, 90 min).
+\item \textbf{Session 4: Fit a curved Arrhenius plot} (Level 3, simulation and validation, 90 min).
 \end{enumerate}
 
 \section{Session 1: Reaction speed rises steeply with temperature}
@@ -183,12 +184,50 @@ Nine temperatures from 600 to 1000 K in steps of 50 K, synthetic data with 5 per
 \item \textbf{Design and optimisation challenge.} Design: you can add measurements to the 600 to 1000 K data to get k(2000 K) with a factor of at most 1.15. What do you change first, the number of points or the range, and why? Test the cases in the app.
 \end{enumerate}
 
+\section{Session 4: Fit a curved Arrhenius plot}
+
+\subsection*{A. Real-world problem}
+Session 3 ended with a warning: for a reaction with two parallel paths the plot of $\ln k$ against $1000/T$ is curved, and a straight line fitted over 800 to 1600 K predicts $k$ at 2000 K nine times too low while its own band looks tight. A model of a hot process still needs $k$ at 2000 K. Can we fit the curve, say how sure we are, and know when the data cannot answer the question at all? This is general education about curve fitting, not a design method for any real process.
+
+\subsection*{B. Concept and theory}
+Two reactions in parallel add their rates, so $k(T)=k_1(T)+k_2(T)$. With $x=1000/T$, $E$ in kJ/mol and $R=8.314$ J/(mol K), each term is a straight line on the Arrhenius plot and their sum follows the higher one: the shallow low-$E_a$ channel when it is cool, the steep high-$E_a$ channel when it is hot, bending at the crossover $x=R(\ln A_1-\ln A_2)/(E_1-E_2)$. There is no formula for the best four parameters, so the fit is iterative: linearise $\ln k$ with the Jacobian $J$ and take a damped step (Levenberg-Marquardt), trying three start guesses and keeping the lowest residual sum of squares. At the solution $\mathrm{Cov}(p)=s^2(J^{\mathsf T}J)^{-1}$; the parameters of one channel are strongly correlated, so each is poorly known, but the prediction is one combination of them and is well known. The delta method gives its variance as $g^{\mathsf T}\mathrm{Cov}(p)\,g$, and AICc compares the line with the two channels.
+
+\begin{equation*}
+k(T)=\exp\!\Big(\ln A_1-\frac{E_1x}{R}\Big)+\exp\!\Big(\ln A_2-\frac{E_2x}{R}\Big),\qquad \big(J^{\mathsf T}J+\lambda\,\mathrm{diag}(J^{\mathsf T}J)\big)\delta=J^{\mathsf T}r
+\end{equation*}
+
+\begin{equation*}
+\mathrm{Var}[\ln k(T)]=g^{\mathsf T}\,\mathrm{Cov}(p)\,g,\qquad \mathrm{AICc}=n\ln\frac{\mathrm{RSS}}{n}+2m+\frac{2m(m+1)}{n-m-1}
+\end{equation*}
+
+\begin{center}\includegraphics[width=0.85\linewidth]{figures/s04_curved_fit.png}\\\small Left: data, straight line, two-channel fit and band, with the 2000 K prediction. Middle: the two channels and their sum, crossover at 1119 K. Right: share of repeated experiments within a factor 1.5 against the hottest measured temperature.\end{center}
+
+\subsection*{E. Worked example}
+Twelve temperatures from 500 to 1600 K in steps of 100 K, 3 percent error, true $\ln A_1=16.118$, $E_1=50$ kJ/mol, $\ln A_2=32.236$, $E_2=200$ kJ/mol (seed 0).
+\begin{enumerate}[nosep]
+\item The straight line has $s=1.267$, its residuals come in 3 runs of one sign, and it predicts $1.18\times10^7$ per s, 51 times too low.
+\item The two-channel fit gives $\ln A_1=16.130\pm0.041$, $E_1=50.05\pm0.228$, $\ln A_2=32.099\pm0.102$, $E_2=198.51\pm1.19$ kJ/mol, $s=0.0217$ on 8 degrees of freedom.
+\item $\ln A$ and $E$ of one channel are correlated: 0.974 and 0.995. The crossover is at 1118 K (true 1119 K).
+\item At 2000 K the standard error of $\ln k$ is 0.0317 and $t=2.306$, so the factor is $\exp(2.306\times0.0317)=1.076$ each way.
+\item AICc is 8.8 for the line and $-83.1$ for two channels.
+\end{enumerate}
+\textbf{Answer.} $k(2000\,\mathrm{K})=5.70\times10^8$ per s with 95 percent interval $5.30\times10^8$ to $6.14\times10^8$, which contains the true $5.98\times10^8$. Over 1000 repeated experiments the interval holds the truth 94.5 percent of the time. If the data stop at 900 K only about 1 percent of predictions are within a factor 1.5, and the interval holds the truth in only 22 percent of repeats.
+
+\subsection*{F. Questions}
+\begin{enumerate}[nosep]
+\item \textbf{Conceptual.} Why does adding two Arrhenius terms bend the plot of $\ln k$ against $1000/T$, and why does the hot end follow the channel with the larger $E_a$?
+\item \textbf{Numerical.} For the true law ($\ln A_1=16.118$, $E_1=50$, $\ln A_2=32.236$, $E_2=200$ kJ/mol) find the crossover temperature.
+\item \textbf{Graph and simulation interpretation.} In the right panel of the figure the share of correct predictions is about 1 percent when the data stop at 900 K, yet the band is narrow there. Which number from the fit says that the straight line is enough, and why can it not rescue the prediction?
+\item \textbf{Design and optimisation challenge.} You have 12 points from 500 K at 3 percent error. How hot must you go so that at least 95 percent of repeated experiments predict $k(2000\,\mathrm{K})$ within a factor 1.5?
+\end{enumerate}
+
 \section{Real-world mini-project}
 \textbf{Fit Ea and A and predict k at 2000 K with a band.} A lab reports seven rate constants for one reaction at 700, 766.7, 833.3, 900, 966.7, 1033.3 and 1100 K. In this exercise the data are synthetic so you can check your answer: build them with \texttt{synthetic(np.linspace(700, 1100, 7), 0.06, 21, 3e11, 120.0)} from Session 3 (6 percent multiplicative error, true A = 3e11 per s, true Ea = 120 kJ/mol). Fit the line, report Ea and ln A with their errors and correlation, and predict k at 2000 K with a 95 percent interval from \texttt{band} and from Monte Carlo. Then repeat with the window 900 to 1100 K and see what the interval does.
 
+\textbf{Predict $k$ at 2000 K from a curved plot (classroom exercise only).} Ten synthetic rate constants at 600, 700, \dots, 1500 K with 4 percent error from two channels ($A_1=3\times10^6$ per s, $E_1=60$ kJ/mol; $A_2=2\times10^{12}$ per s, $E_2=170$ kJ/mol). The fit gives $E_1=60.04\pm0.83$ and $E_2=167.8\pm1.57$ kJ/mol, a crossover at 980 K (true 987 K), and $k(2000\,\mathrm{K})=6.75\times10^7$ per s with interval $5.95\times10^7$ to $7.67\times10^7$ around the true $7.27\times10^7$; the straight line is 13 times too low. If the data stop at 1000 K only about 30 percent of repeated predictions fall within a factor 1.5. This is a teaching exercise on synthetic data, not a method for predicting a real process.
+
 \section{The path ahead}
 \begin{enumerate}[nosep]
-\item \textbf{Session 4: Fit a curved Arrhenius plot.} A fitting function for k = k1(T) + k2(T) with its own uncertainty band.
 \item \textbf{Session 5: Design the experiment for the prediction.} A small optimiser over seven temperatures between 700 and 1100 K, requiring at least three distinct temperatures so linearity can be checked.
 \item \textbf{Session 6: Bootstrap intervals.} A residual bootstrap of the 2000 K prediction.
 \item \textbf{Session 7: Three-parameter fits and their correlations.} A fit\_modified that also returns the 3 by 3 covariance and a correlation table.
@@ -219,6 +258,14 @@ Nine temperatures from 600 to 1000 K in steps of 50 K, synthetic data with 5 per
 \item \textbf{Numerical.} Hint: se = s sqrt(1/n + (x - xbar)\textasciicircum{}2 / Sxx). Solution: (x - xbar)\textasciicircum{}2 = 0.0341\textasciicircum{}2 = 0.00116, divided by 0.4113 is 0.0028; 1/9 = 0.1111; the sum is 0.1139, its square root 0.3375, so se = 0.0535 x 0.3375 = 0.0181 (the lesson gives 0.01806). The factor on each side is exp(2.365 x 0.0181) = 1.044; the upper divided by the lower is 1.09.
 \item \textbf{Graph and simulation interpretation.} Hint: Compare the fitted error s with the noise you expect from the lab (3 percent). Solution: The residual error s is 0.86 (a typical misfit of a factor 2.4 in k), where a true single channel with 3 percent noise gives s of about 0.037. A fit error far above the known measurement error means the straight line does not describe the data. The truth at 2000 K is 5.98e8 per s and the line predicts 6.5e7, a factor 9.2 too low.
 \item \textbf{Design and optimisation challenge.} Hint: Try the app: 5 percent error, change n and the cold end Tlow separately. Solution: In the app, with 5 percent error and a hot end of 1000 K, six points from 800 K give a factor 1.52; twelve points from 500 K give 1.11, which meets the limit. Widening the range mostly helps because it increases Sxx and moves xbar towards the target; adding points helps through 1/n and through the t factor. A cheaper option is to extend the range towards high temperature, but the furnace limit and the risk of a second reaction channel are the trade-offs.
+\end{enumerate}
+
+\subsection*{Session 4}
+\begin{enumerate}[nosep]
+\item \textbf{Conceptual.} Hint: At each temperature the larger term is almost all of $k$. Solution: $\ln(a+b)$ is close to the larger of $\ln a$ and $\ln b$. When it is cool the small-$E_a$ channel is larger (shallow line); when it is hot the large-$E_a$ channel climbs past it (steep line); the curve bends near the crossover. At 2000 K the high-$E_a$ channel carries 99.9 percent of $k$.
+\item \textbf{Numerical.} Hint: Set $\ln A_1-E_1x/R=\ln A_2-E_2x/R$. Solution: $x=8.3145\times(16.118-32.236)/(50-200)=0.8934$, so $T=1000/0.8934=1119$ K.
+\item \textbf{Graph and simulation interpretation.} Hint: Compare AICc of the line and the two channels for data that stop at 900 K. Solution: The median AICc difference is about $-8$, so the line is preferred: the data show no curvature. The second channel only takes over above 1119 K, where nothing was measured. The band counts noise only, so it stays narrow while the interval holds the truth in only 22 percent of repeats.
+\item \textbf{Design and optimisation challenge.} Hint: Use the hottest-temperature slider or \texttt{reach\_study}. Solution: The share within a factor 1.5 is 53 percent at 1150 K, 81 percent at 1200 K, 94.7 percent at 1250 K and 99 percent at 1300 K, so go to about 1300 K, roughly 180 K past the crossover. The median interval factor falls from 12.9 at 1150 K to 2.0 at 1300 K.
 \end{enumerate}
 
 \section{How to join}
